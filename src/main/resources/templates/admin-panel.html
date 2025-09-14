@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Panel - Student Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div th:replace="~{fragments :: navbar}"></div>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>Admin Panel</h1>
+                <p class="lead">Welcome to the administration dashboard</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Users</h5>
+                        <h2 class="card-text" th:text="${totalUsers}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Admins</h5>
+                        <h2 class="card-text" th:text="${adminUsers}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Students</h5>
+                        <h2 class="card-text" th:text="${studentUsers}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2 d-md-flex">
+                            <a href="/students" class="btn btn-primary me-md-2">Manage Students</a>
+                            <a href="/courses" class="btn btn-primary me-md-2">Manage Courses</a>
+                            <a href="/enrollments" class="btn btn-primary me-md-2">Manage Enrollments</a>
+                            <a href="/students/new" class="btn btn-success">Add New Student</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">All Users</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Student Name</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="user : ${allUsers}">
+                                        <td th:text="${user.id}">1</td>
+                                        <td th:text="${user.username}">admin</td>
+                                        <td>
+                                            <span th:if="${user.role == 'ROLE_ADMIN'}" class="badge bg-warning">Admin</span>
+                                            <span th:if="${user.role == 'ROLE_STUDENT'}" class="badge bg-info">Student</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${user.student != null}" 
+                                                  th:text="${user.student.firstName + ' ' + user.student.lastName}">
+                                                John Doe
+                                            </span>
+                                            <span th:if="${user.student == null}" class="text-muted">N/A</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${user.student != null}" th:text="${user.student.email}">
+                                                john@example.com
+                                            </span>
+                                            <span th:if="${user.student == null}" class="text-muted">N/A</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
