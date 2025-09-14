@@ -67,3 +67,18 @@ A comprehensive full-stack web application for managing students, courses, and e
     - Login: Sign in with your credentials
     - Admin Features: Manage students, courses, and view all enrollments
     - Student Features: View courses, enroll in courses, check grades
+
+##Project Structure
+src/
+├── main/
+│   ├── java/
+│   │   └── com/example/studentmanagement/
+│   │       ├── controller/     # MVC Controllers
+│   │       ├── entity/         # JPA Entities
+│   │       ├── repository/     # Data Access Layer
+│   │       ├── service/        # Business Logic
+│   │       └── config/         # Configuration
+│   └── resources/
+│       ├── templates/          # Thymeleaf templates
+│       ├── static/             # Static resources
+│       └── application.properties
