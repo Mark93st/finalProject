@@ -51,9 +51,19 @@ A comprehensive full-stack web application for managing students, courses, and e
     - spring.datasource.password=your_password
 
 4. **Run the application**
-    mvn spring-boot:run
+    - mvn spring-boot:run
 
 5. **Access the application**
     - Open: http://localhost:8080
     - First registered user becomes Admin
     - Subsequent users become Students
+
+6. **Default roles**
+    - Admin: Full access to all features (students, courses, enrollments)
+    - Student: Can view their courses, grades, and enroll in new courses
+
+7. **Usage**
+    - Registration: Create a new account
+    - Login: Sign in with your credentials
+    - Admin Features: Manage students, courses, and view all enrollments
+    - Student Features: View courses, enroll in courses, check grades
