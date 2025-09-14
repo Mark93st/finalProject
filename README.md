@@ -44,3 +44,16 @@ A comprehensive full-stack web application for managing students, courses, and e
 2. **Database Setup**
    ```sql
    CREATE DATABASE student_management_db;
+
+3. **Configuration**
+    - spring.datasource.url=jdbc:mysql://localhost:3306/student_management_db
+    - spring.datasource.username=your_username
+    - spring.datasource.password=your_password
+
+4. **Run the application**
+    mvn spring-boot:run
+
+5. **Access the application**
+    - Open: http://localhost:8080
+    - First registered user becomes Admin
+    - Subsequent users become Students
