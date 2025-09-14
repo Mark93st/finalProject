@@ -38,6 +38,12 @@
                         <div class="mb-3">
                             <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
                             <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                            <div class="form-text">Password must be at least 6 characters long.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" required>
                         </div>
 
                         <h6 class="border-bottom pb-2 mb-3 mt-4">Student Information</h6>

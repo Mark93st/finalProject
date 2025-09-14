@@ -5,6 +5,9 @@ import gr.aueb.finalProject.model.User;
 import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,15 +34,27 @@ public class AuthController {
     @PostMapping("/register")
     public String registerNewUser(@ModelAttribute RegistrationDTO registrationData, Model model) {
         try {
+            if (!registrationData.getPassword().equals(registrationData.getConfirmPassword())) {
+                model.addAttribute("errorMessage", "Passwords do not match");
+                model.addAttribute("registrationData", registrationData);
+                return "register";
+            }
+
+            if (registrationData.getPassword().length() < 6) {
+                model.addAttribute("errorMessage", "Password must be at least 6 characters long");
+                model.addAttribute("registrationData", registrationData);
+                return "register";
+            }
+
             User newUser = new User();
             newUser.setUsername(registrationData.getUsername());
             newUser.setPassword(registrationData.getPassword());
 
             long userCount = userService.findAll().size();
             if (userCount == 0) {
-                newUser.setRole("ROLE_ADMIN"); // Ο πρώτος χρήστης γίνεται ADMIN
+                newUser.setRole("ROLE_ADMIN");
             } else {
-                newUser.setRole("ROLE_STUDENT"); // Όλοι οι επόμενοι γίνονται STUDENT
+                newUser.setRole("ROLE_STUDENT");
             }
 
             Student newStudent = new Student();
@@ -52,8 +67,16 @@ public class AuthController {
 
             userService.registerNewUser(newUser);
 
-            model.addAttribute("successMessage", "Registration successful! Please login.");
-            return "login";
+            try {
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        newUser.getUsername(),
+                        registrationData.getPassword()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                return "redirect:/home?success=Registration successful! Welcome!";
+            } catch (Exception e) {
+                return "redirect:/login?success=Registration successful! Please login.";
+            }
 
         } catch (RuntimeException e) {
             model.addAttribute("errorMessage", e.getMessage());
