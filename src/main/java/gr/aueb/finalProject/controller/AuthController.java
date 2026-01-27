@@ -4,12 +4,14 @@ import gr.aueb.finalProject.dto.RegistrationDTO;
 import gr.aueb.finalProject.model.User;
 import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +34,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerNewUser(@ModelAttribute RegistrationDTO registrationData, Model model) {
+    public String registerNewUser(@Valid @ModelAttribute RegistrationDTO registrationData, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            return "register";
+        }
         try {
             if (!registrationData.getPassword().equals(registrationData.getConfirmPassword())) {
                 model.addAttribute("errorMessage", "Passwords do not match");

@@ -2,11 +2,13 @@ package gr.aueb.finalProject.controller;
 
 import gr.aueb.finalProject.model.Course;
 import gr.aueb.finalProject.service.CourseService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +41,11 @@ public class CourseController {
     }
 
     @PostMapping("/new")
-    public String createCourse(@ModelAttribute Course course, Model model) {
+    public String createCourse(@Valid @ModelAttribute Course course, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            addCurrentUserToModel(model);
+            return "add-course";
+        }
         try {
             courseService.save(course);
             return "redirect:/courses?success=Course created successfully";
@@ -64,7 +70,11 @@ public class CourseController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updateCourse(@PathVariable("id") Long id, @ModelAttribute Course course, Model model) {
+    public String updateCourse(@PathVariable("id") Long id, @Valid @ModelAttribute Course course, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            addCurrentUserToModel(model);
+            return "edit-course";
+        }
         try {
             Course existingCourse = courseService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));

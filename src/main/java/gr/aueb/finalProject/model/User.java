@@ -27,7 +27,6 @@ public class User implements UserDetails {
     private String role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private Student student;
 
     @Override

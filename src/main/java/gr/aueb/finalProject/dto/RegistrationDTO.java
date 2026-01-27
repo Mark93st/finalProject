@@ -1,5 +1,6 @@
 package gr.aueb.finalProject.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class RegistrationDTO {
@@ -19,6 +20,7 @@ public class RegistrationDTO {
     @NotBlank(message = "Password confirmation is mandatory")
     private String confirmPassword;
 
+    @Email(message = "Email should be valid")
     private String email;
 
     public RegistrationDTO() {
