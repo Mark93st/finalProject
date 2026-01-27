@@ -64,15 +64,14 @@ public class AuthController {
                 newUser.setRole("ROLE_ADMIN");
             } else {
                 newUser.setRole("ROLE_STUDENT");
+                Student newStudent = new Student();
+                newStudent.setFirstName(registrationData.getFirstName());
+                newStudent.setLastName(registrationData.getLastName());
+                newStudent.setEmail(registrationData.getEmail());
+
+                newUser.setStudent(newStudent);
+                newStudent.setUser(newUser);
             }
-
-            Student newStudent = new Student();
-            newStudent.setFirstName(registrationData.getFirstName());
-            newStudent.setLastName(registrationData.getLastName());
-            newStudent.setEmail(registrationData.getEmail());
-
-            newUser.setStudent(newStudent);
-            newStudent.setUser(newUser);
 
             userService.registerNewUser(newUser);
 
