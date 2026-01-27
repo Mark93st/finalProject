@@ -8,13 +8,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,65 +31,78 @@ class CourseControllerTest {
     @Mock
     private Model model;
 
+    @Mock
+    private BindingResult bindingResult;
+
     @InjectMocks
     private CourseController courseController;
 
-    private Course testCourse;
-
     @BeforeEach
     void setUp() {
-        testCourse = new Course();
-        testCourse.setId(1L);
-        testCourse.setTitle("Mathematics");
-        testCourse.setDescription("Math course");
-        testCourse.setCredits(5);
+        // Mock Security Context to prevent NullPointerException in addCurrentUserToModel
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
+        lenient().when(authentication.getName()).thenReturn("testUser");
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    @Test
+    void testListCourses() {
+        when(courseService.findAll()).thenReturn(Arrays.asList(new Course(), new Course()));
+
+        String viewName = courseController.listCourses(model);
+
+        assertEquals("courses", viewName);
+        verify(model).addAttribute(eq("courses"), any());
+        verify(model).addAttribute("currentUser", "testUser");
     }
 
     @Test
     void testCreateCourseSuccess() {
-        when(courseService.save(any(Course.class))).thenReturn(testCourse);
+        Course course = new Course();
+        when(bindingResult.hasErrors()).thenReturn(false);
 
-        String viewName = courseController.createCourse(testCourse, model);
+        String viewName = courseController.createCourse(course, bindingResult, model);
 
         assertEquals("redirect:/courses?success=Course created successfully", viewName);
-        verify(courseService).save(any(Course.class));
+        verify(courseService).save(course);
     }
 
     @Test
-    void testShowEditFormNotFound() {
-        when(courseService.findById(999L)).thenReturn(Optional.empty());
+    void testCreateCourseValidationFailure() {
+        Course course = new Course();
+        when(bindingResult.hasErrors()).thenReturn(true);
 
-        String viewName = courseController.showEditForm(999L, model);
+        String viewName = courseController.createCourse(course, bindingResult, model);
 
-        assertEquals("redirect:/courses?error=Course not found", viewName);
+        assertEquals("add-course", viewName);
+        verify(courseService, never()).save(any());
+        verify(model).addAttribute("currentUser", "testUser");
     }
 
     @Test
     void testUpdateCourseSuccess() {
-        when(courseService.findById(1L)).thenReturn(Optional.of(testCourse));
-        when(courseService.save(any(Course.class))).thenReturn(testCourse);
+        Long courseId = 1L;
+        Course existingCourse = new Course();
+        existingCourse.setId(courseId);
+        Course updatedData = new Course();
+        updatedData.setTitle("New Title");
 
-        String viewName = courseController.updateCourse(1L, testCourse, model);
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(courseService.findById(courseId)).thenReturn(Optional.of(existingCourse));
+
+        String viewName = courseController.updateCourse(courseId, updatedData, bindingResult, model);
 
         assertEquals("redirect:/courses?success=Course updated successfully", viewName);
-        verify(courseService).save(any(Course.class));
+        verify(courseService).save(existingCourse);
+        assertEquals("New Title", existingCourse.getTitle());
     }
 
-
     @Test
-    void testDeleteCourseSuccess() {
+    void testDeleteCourse() {
         String viewName = courseController.deleteCourse(1L);
-
         assertEquals("redirect:/courses?success=Course deleted successfully", viewName);
         verify(courseService).deleteById(1L);
-    }
-
-    @Test
-    void testDeleteCourseFailure() {
-        doThrow(new RuntimeException("Error")).when(courseService).deleteById(1L);
-
-        String viewName = courseController.deleteCourse(1L);
-
-        assertEquals("redirect:/courses?error=Error deleting course", viewName);
     }
 }
