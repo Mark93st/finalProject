@@ -51,4 +51,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public boolean existsByStudentAndCourse(Long studentId, Long courseId) {
         return enrollmentRepository.existsByStudentIdAndCourseId(studentId, courseId);
     }
+
+    @Override
+    public long count() {
+        return enrollmentRepository.count();
+    }
 }

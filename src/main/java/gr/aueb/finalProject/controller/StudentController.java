@@ -4,14 +4,13 @@ import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.model.User;
 import gr.aueb.finalProject.service.StudentService;
 import gr.aueb.finalProject.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/students")
@@ -27,90 +26,72 @@ public class StudentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public String listStudents(Model model) {
-        List<Student> students = studentService.findAll();
-        model.addAttribute("students", students);
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        model.addAttribute("currentUser", username);
+        model.addAttribute("students", studentService.findAll());
         return "students";
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
     public String showCreateForm(Model model) {
         model.addAttribute("student", new Student());
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        model.addAttribute("currentUser", username);
         return "add-student";
     }
 
+    @PostMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String createStudent(@Valid @ModelAttribute Student student, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            return "add-student";
+        }
+        // Note: This creates a Student entity. If you want them to log in, 
+        // you would typically create a User entity first (like in AuthController).
+        studentService.save(student);
+        return "redirect:/students?success=Student created successfully";
+    }
+
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String showEditForm(@PathVariable("id") Long id, Model model) {
-        try {
-            Student student = studentService.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
-            model.addAttribute("student", student);
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
-            model.addAttribute("currentUser", username);
+        return studentService.findById(id)
+                .map(student -> {
+                    model.addAttribute("student", student);
+                    return "edit-student";
+                })
+                .orElse("redirect:/students?error=Student not found");
+    }
+
+    @PostMapping("/edit/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateStudent(@PathVariable("id") Long id, @Valid @ModelAttribute Student student, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
             return "edit-student";
-        } catch (RuntimeException e) {
-            return "redirect:/students?error=Student not found";
+        }
+        try {
+            Student existingStudent = studentService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
+            
+            existingStudent.setFirstName(student.getFirstName());
+            existingStudent.setLastName(student.getLastName());
+            existingStudent.setEmail(student.getEmail());
+            
+            studentService.save(existingStudent);
+            return "redirect:/students?success=Student updated successfully";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "edit-student";
         }
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteStudent(@PathVariable("id") Long id) {
         try {
             studentService.deleteById(id);
             return "redirect:/students?success=Student deleted successfully";
-        } catch (RuntimeException e) {
-            return "redirect:/students?error=Error deleting student";
-        }
-    }
-
-    @PostMapping("/new")
-    public String createStudent(@ModelAttribute Student student, Model model) {
-        try {
-            User newUser = new User();
-            newUser.setUsername(student.getFirstName().toLowerCase() + "." + student.getLastName().toLowerCase());
-            newUser.setPassword("tempPassword123");
-            newUser.setRole("ROLE_STUDENT");
-
-            student.setUser(newUser);
-            newUser.setStudent(student);
-
-            userService.registerNewUser(newUser);
-
-            return "redirect:/students?success=true";
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Error creating student: " + e.getMessage());
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
-            model.addAttribute("currentUser", username);
-            return "add-student";
-        }
-    }
-
-    @PostMapping("/edit/{id}")
-    public String updateStudent(@PathVariable("id") Long id, @ModelAttribute Student student, Model model) {
-        try {
-            Student existingStudent = studentService.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
-
-            existingStudent.setFirstName(student.getFirstName());
-            existingStudent.setLastName(student.getLastName());
-            existingStudent.setEmail(student.getEmail());
-
-            studentService.save(existingStudent);
-            return "redirect:/students?success=Student updated successfully";
-        } catch (RuntimeException e) {
-            model.addAttribute("errorMessage", "Error updating student: " + e.getMessage());
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
-            model.addAttribute("currentUser", username);
-            return "edit-student";
+            return "redirect:/students?error=Error deleting student";
         }
     }
 }

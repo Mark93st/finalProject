@@ -1,7 +1,6 @@
 package gr.aueb.finalProject.controller;
 
 import gr.aueb.finalProject.model.Student;
-import gr.aueb.finalProject.model.User;
 import gr.aueb.finalProject.service.StudentService;
 import gr.aueb.finalProject.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,13 +10,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +29,9 @@ class StudentControllerTest {
 
     @Mock
     private Model model;
+
+    @Mock
+    private BindingResult bindingResult;
 
     @InjectMocks
     private StudentController studentController;
@@ -71,24 +72,26 @@ class StudentControllerTest {
     @Test
     void testCreateStudentSuccess() {
         // Arrange
-        when(userService.registerNewUser(any(User.class))).thenReturn(new User());
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(studentService.save(any(Student.class))).thenReturn(testStudent);
 
         // Act
-        String viewName = studentController.createStudent(testStudent, model);
+        String viewName = studentController.createStudent(testStudent, bindingResult, model);
 
         // Assert
-        assertEquals("redirect:/students?success=true", viewName);
-        verify(userService, times(1)).registerNewUser(any(User.class));
+        assertEquals("redirect:/students?success=Student created successfully", viewName);
+        verify(studentService, times(1)).save(any(Student.class));
     }
 
     @Test
     void testUpdateStudentSuccess() {
         // Arrange
+        when(bindingResult.hasErrors()).thenReturn(false);
         when(studentService.findById(1L)).thenReturn(Optional.of(testStudent));
         when(studentService.save(any(Student.class))).thenReturn(testStudent);
 
         // Act
-        String viewName = studentController.updateStudent(1L, testStudent, model);
+        String viewName = studentController.updateStudent(1L, testStudent, bindingResult, model);
 
         // Assert
         assertEquals("redirect:/students?success=Student updated successfully", viewName);
