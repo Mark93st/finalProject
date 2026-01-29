@@ -11,4 +11,5 @@ public interface StudentService {
     void deleteById(Long id);
     List<Student> findByLastName(String lastName);
     Optional<Student> findByUserUsername(String username);
+    long count();
 }

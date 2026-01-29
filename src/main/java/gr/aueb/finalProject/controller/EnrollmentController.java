@@ -1,20 +1,21 @@
 package gr.aueb.finalProject.controller;
 
+import gr.aueb.finalProject.model.Course;
 import gr.aueb.finalProject.model.Enrollment;
 import gr.aueb.finalProject.model.Student;
-import gr.aueb.finalProject.model.Course;
+import gr.aueb.finalProject.model.User;
+import gr.aueb.finalProject.service.CourseService;
 import gr.aueb.finalProject.service.EnrollmentService;
 import gr.aueb.finalProject.service.StudentService;
-import gr.aueb.finalProject.service.CourseService;
+import gr.aueb.finalProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Collections;
 
 @Controller
 @RequestMapping("/enrollments")
@@ -23,90 +24,113 @@ public class EnrollmentController {
     private final EnrollmentService enrollmentService;
     private final StudentService studentService;
     private final CourseService courseService;
+    private final UserService userService;
 
     @Autowired
-    public EnrollmentController(EnrollmentService enrollmentService,
-                                StudentService studentService,
-                                CourseService courseService) {
+    public EnrollmentController(EnrollmentService enrollmentService, StudentService studentService, CourseService courseService, UserService userService) {
         this.enrollmentService = enrollmentService;
         this.studentService = studentService;
         this.courseService = courseService;
+        this.userService = userService;
     }
 
     @GetMapping
-    public String listEnrollments(Model model) {
-        List<Enrollment> enrollments = enrollmentService.findAll();
-        model.addAttribute("enrollments", enrollments);
-        addCurrentUserToModel(model);
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_STUDENT')")
+    public String listEnrollments(Authentication auth, Model model) {
+        String username = auth.getName();
+        
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            model.addAttribute("enrollments", enrollmentService.findAll());
+        } else {
+            User user = userService.findByUsername(username).orElseThrow();
+            if (user.getStudent() != null) {
+                model.addAttribute("enrollments", enrollmentService.findByStudentId(user.getStudent().getId()));
+            } else {
+                model.addAttribute("enrollments", Collections.emptyList());
+                model.addAttribute("errorMessage", "No student profile found for your account.");
+            }
+        }
         return "enrollments";
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
     public String showCreateForm(Model model) {
-        List<Student> students = studentService.findAll();
-        List<Course> courses = courseService.findAll();
-
-        model.addAttribute("enrollment", new Enrollment());
-        model.addAttribute("students", students);
-        model.addAttribute("courses", courses);
-        addCurrentUserToModel(model);
+        model.addAttribute("students", studentService.findAll());
+        model.addAttribute("courses", courseService.findAll());
         return "add-enrollment";
     }
 
     @PostMapping("/new")
-    public String createEnrollment(@RequestParam Long studentId,
-                                   @RequestParam Long courseId,
-                                   Model model) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public String createEnrollmentForAdmin(@RequestParam Long studentId, @RequestParam Long courseId, Model model) {
         try {
             if (enrollmentService.existsByStudentAndCourse(studentId, courseId)) {
                 model.addAttribute("errorMessage", "Student is already enrolled in this course");
-                return showCreateForm(model);
+                model.addAttribute("students", studentService.findAll());
+                model.addAttribute("courses", courseService.findAll());
+                return "add-enrollment";
+            }
+            Student student = studentService.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+            Course course = courseService.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+            Enrollment enrollment = new Enrollment(student, course);
+            enrollmentService.save(enrollment);
+            return "redirect:/enrollments?success=Enrollment created successfully";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("students", studentService.findAll());
+            model.addAttribute("courses", courseService.findAll());
+            return "add-enrollment";
+        }
+    }
+
+    @PostMapping("/enroll")
+    @PreAuthorize("hasRole('STUDENT')")
+    public String createEnrollment(@RequestParam("courseId") Long courseId, @RequestParam(value = "studentId", required = false) Long studentId, Authentication auth, Model model) {
+        try {
+            Long finalStudentId = studentId;
+            if (finalStudentId == null) {
+                User user = userService.findByUsername(auth.getName()).orElseThrow();
+                if (user.getStudent() == null) {
+                    return "redirect:/courses?error=No student profile found for your account.";
+                }
+                finalStudentId = user.getStudent().getId();
             }
 
-            Student student = studentService.findById(studentId)
-                    .orElseThrow(() -> new RuntimeException("Student not found"));
-            Course course = courseService.findById(courseId)
-                    .orElseThrow(() -> new RuntimeException("Course not found"));
+            if (enrollmentService.existsByStudentAndCourse(finalStudentId, courseId)) {
+                return "redirect:/courses?error=You are already enrolled in this course";
+            }
 
-            Enrollment enrollment = new Enrollment(student, course);
+            Student student = studentService.findById(finalStudentId).orElseThrow();
+            Course course = courseService.findById(courseId).orElseThrow();
+
+            Enrollment enrollment = new Enrollment();
+            enrollment.setStudent(student);
+            enrollment.setCourse(course);
             enrollmentService.save(enrollment);
 
             return "redirect:/enrollments?success=Enrollment created successfully";
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Error creating enrollment: " + e.getMessage());
-            return showCreateForm(model);
+            return "redirect:/courses?error=" + e.getMessage();
         }
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteEnrollment(@PathVariable("id") Long id) {
-        try {
-            enrollmentService.deleteById(id);
-            return "redirect:/enrollments?success=Enrollment deleted successfully";
-        } catch (RuntimeException e) {
-            return "redirect:/enrollments?error=Error deleting enrollment";
-        }
-    }
-
-    private void addCurrentUserToModel(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        model.addAttribute("currentUser", username);
+        enrollmentService.deleteById(id);
+        return "redirect:/enrollments?success=Enrollment deleted successfully";
     }
 
     @PostMapping("/grade/{id}")
-    public String updateGrade(@PathVariable("id") Long id,
-                              @RequestParam String grade,
-                              Model model) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateGrade(@PathVariable("id") Long id, @RequestParam("grade") String grade, Model model) {
         try {
-            Enrollment enrollment = enrollmentService.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-
+            Enrollment enrollment = enrollmentService.findById(id).orElseThrow();
             enrollment.setGrade(grade);
             enrollmentService.save(enrollment);
-
             return "redirect:/enrollments?success=Grade updated successfully";
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             return "redirect:/enrollments?error=Error updating grade";
         }
     }

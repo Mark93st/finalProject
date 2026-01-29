@@ -6,6 +6,7 @@ import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.service.CourseService;
 import gr.aueb.finalProject.service.EnrollmentService;
 import gr.aueb.finalProject.service.StudentService;
+import gr.aueb.finalProject.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,12 @@ class EnrollmentControllerTest {
     @Mock
     private Model model;
 
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private EnrollmentController enrollmentController;
 
@@ -48,7 +55,6 @@ class EnrollmentControllerTest {
 
     @BeforeEach
     void setUp() {
-        Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
         lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
         lenient().when(authentication.getName()).thenReturn("testUser");
@@ -76,7 +82,7 @@ class EnrollmentControllerTest {
         when(enrollmentService.existsByStudentAndCourse(1L, 1L)).thenReturn(false);
         when(enrollmentService.save(any(Enrollment.class))).thenReturn(testEnrollment);
 
-        String viewName = enrollmentController.createEnrollment(1L, 1L, model);
+        String viewName = enrollmentController.createEnrollment(1L, 1L, authentication, model);
 
         assertEquals("redirect:/enrollments?success=Enrollment created successfully", viewName);
         verify(enrollmentService).save(any(Enrollment.class));

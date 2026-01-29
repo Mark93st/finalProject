@@ -46,4 +46,9 @@ public class StudentServiceImpl implements StudentService {
     public Optional<Student> findByUserUsername(String username) {
         return studentRepository.findByUserUsername(username);
     }
+
+    @Override
+    public long count() {
+        return studentRepository.count();
+    }
 }

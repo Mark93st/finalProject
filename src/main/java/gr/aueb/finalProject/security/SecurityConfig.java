@@ -2,12 +2,14 @@ package gr.aueb.finalProject.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -21,7 +23,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/webjars/**", "/css/**").permitAll()
                         .requestMatchers("/home").authenticated()
-                        .requestMatchers("/students/**", "/courses/**", "/enrollments/**").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers("/students/**").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers("/courses/**", "/enrollments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

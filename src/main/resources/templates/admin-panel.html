@@ -1,120 +1,61 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Panel - Student Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</head>
-<body class="bg-light d-flex flex-column min-vh-100">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments :: head('Admin Panel')}"></head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    <nav th:replace="~{fragments :: navbar}"></nav>
 
-    <div th:replace="~{fragments :: navbar}"></div>
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+            <p class="text-gray-600 mt-2">Manage the entire student management system from here.</p>
+        </div>
 
-    <div class="container flex-grow-1 mt-4">
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1>Admin Panel</h1>
-                <p class="lead">Welcome to the administration dashboard</p>
+        <!-- Statistics Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow border-b-4 border-blue-500">
+                <p class="text-sm font-medium text-gray-500 uppercase">Total Students</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${studentCount ?: 0}">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-b-4 border-green-500">
+                <p class="text-sm font-medium text-gray-500 uppercase">Total Courses</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${courseCount ?: 0}">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-b-4 border-purple-500">
+                <p class="text-sm font-medium text-gray-500 uppercase">Total Enrollments</p>
+                <p class="text-3xl font-bold text-gray-800" th:text="${enrollmentCount ?: 0}">0</p>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-white bg-primary text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Users</h5>
-                        <h2 class="card-text" th:text="${totalUsers}">0</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-success text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Admins</h5>
-                        <h2 class="card-text" th:text="${adminUsers}">0</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-info text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Students</h5>
-                        <h2 class="card-text" th:text="${studentUsers}">0</h2>
-                    </div>
-                </div>
-            </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Manage Students -->
+            <a th:href="@{/students}" class="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border-l-4 border-blue-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Manage Students</h3>
+                <p class="text-gray-600 mb-4">View, add, edit, and delete student records.</p>
+                <span class="text-blue-600 font-semibold text-sm">Go to Students &rarr;</span>
+            </a>
+
+            <!-- Manage Courses -->
+            <a th:href="@{/courses}" class="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border-l-4 border-green-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Manage Courses</h3>
+                <p class="text-gray-600 mb-4">Create new courses, update details, or remove them.</p>
+                <span class="text-green-600 font-semibold text-sm">Go to Courses &rarr;</span>
+            </a>
+
+            <!-- Manage Enrollments -->
+            <a th:href="@{/enrollments}" class="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border-l-4 border-purple-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Manage Enrollments</h3>
+                <p class="text-gray-600 mb-4">Enroll students in courses and assign grades.</p>
+                <span class="text-purple-600 font-semibold text-sm">Go to Enrollments &rarr;</span>
+            </a>
+            
+             <!-- Add Enrollment Shortcut -->
+             <a th:href="@{/enrollments/new}" class="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border-l-4 border-yellow-500">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">New Enrollment</h3>
+                <p class="text-gray-600 mb-4">Quickly enroll a student into a course.</p>
+                <span class="text-yellow-600 font-semibold text-sm">Enroll Student &rarr;</span>
+            </a>
         </div>
-
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Quick Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2 d-md-flex">
-                            <a href="/students" class="btn btn-primary me-md-2">Manage Students</a>
-                            <a href="/courses" class="btn btn-primary me-md-2">Manage Courses</a>
-                            <a href="/enrollments" class="btn btn-primary me-md-2">Manage Enrollments</a>
-                            <a href="/students/new" class="btn btn-success">Add New Student</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">All Users</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Student Name</th>
-                                        <th>Email</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="user : ${allUsers}">
-                                        <td th:text="${user.id}">1</td>
-                                        <td th:text="${user.username}">admin</td>
-                                        <td>
-                                            <span th:if="${user.role == 'ROLE_ADMIN'}" class="badge bg-warning">Admin</span>
-                                            <span th:if="${user.role == 'ROLE_STUDENT'}" class="badge bg-info">Student</span>
-                                        </td>
-                                        <td>
-                                            <span th:if="${user.student != null}" 
-                                                  th:text="${user.student.firstName + ' ' + user.student.lastName}">
-                                                John Doe
-                                            </span>
-                                            <span th:if="${user.student == null}" class="text-muted">N/A</span>
-                                        </td>
-                                        <td>
-                                            <span th:if="${user.student != null}" th:text="${user.student.email}">
-                                                john@example.com
-                                            </span>
-                                            <span th:if="${user.student == null}" class="text-muted">N/A</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div th:replace="~{fragments :: footer}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    </main>
+    <footer th:replace="~{fragments :: footer}"></footer>
 </body>
 </html>
