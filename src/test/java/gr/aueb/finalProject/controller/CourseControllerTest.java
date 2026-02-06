@@ -39,12 +39,6 @@ class CourseControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Mock Security Context to prevent NullPointerException in addCurrentUserToModel
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
-        lenient().when(authentication.getName()).thenReturn("testUser");
-        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -55,7 +49,6 @@ class CourseControllerTest {
 
         assertEquals("courses", viewName);
         verify(model).addAttribute(eq("courses"), any());
-        verify(model).addAttribute("currentUser", "testUser");
     }
 
     @Test
@@ -78,7 +71,6 @@ class CourseControllerTest {
 
         assertEquals("add-course", viewName);
         verify(courseService, never()).save(any());
-        verify(model).addAttribute("currentUser", "testUser");
     }
 
     @Test

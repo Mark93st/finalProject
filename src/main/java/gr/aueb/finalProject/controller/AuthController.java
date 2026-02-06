@@ -2,7 +2,6 @@ package gr.aueb.finalProject.controller;
 
 import gr.aueb.finalProject.dto.RegistrationDTO;
 import gr.aueb.finalProject.model.User;
-import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,46 +37,16 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerNewUser(@Valid @ModelAttribute RegistrationDTO registrationData, BindingResult bindingResult, Model model) {
+    public String registerNewUser(@Valid @ModelAttribute("registrationData") RegistrationDTO registrationData, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             return "register";
         }
         try {
-            if (!registrationData.getPassword().equals(registrationData.getConfirmPassword())) {
-                model.addAttribute("errorMessage", "Passwords do not match");
-                model.addAttribute("registrationData", registrationData);
-                return "register";
-            }
-
-            if (registrationData.getPassword().length() < 6) {
-                model.addAttribute("errorMessage", "Password must be at least 6 characters long");
-                model.addAttribute("registrationData", registrationData);
-                return "register";
-            }
-
-            User newUser = new User();
-            newUser.setUsername(registrationData.getUsername());
-            newUser.setPassword(registrationData.getPassword());
-
-            long userCount = userService.findAll().size();
-            if (userCount == 0) {
-                newUser.setRole("ROLE_ADMIN");
-            } else {
-                newUser.setRole("ROLE_STUDENT");
-                Student newStudent = new Student();
-                newStudent.setFirstName(registrationData.getFirstName());
-                newStudent.setLastName(registrationData.getLastName());
-                newStudent.setEmail(registrationData.getEmail());
-
-                newUser.setStudent(newStudent);
-                newStudent.setUser(newUser);
-            }
-
-            userService.registerNewUser(newUser);
+            User registeredUser = userService.registerNewUser(registrationData);
 
             try {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        newUser.getUsername(),
+                        registeredUser.getUsername(),
                         registrationData.getPassword()
                 );
                 SecurityContextHolder.getContext().setAuthentication(authentication);

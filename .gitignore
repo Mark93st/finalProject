@@ -24,3 +24,4 @@ yarn-error.log
 # OS
 .DS_Store
 Thumbs.db
+src/main/resources/application-h2.properties

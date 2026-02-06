@@ -9,6 +9,7 @@ public class RegistrationDTO {
     private String username;
 
     @NotBlank(message = "Password is mandatory")
+    @jakarta.validation.constraints.Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
     @NotBlank(message = "First name is mandatory")

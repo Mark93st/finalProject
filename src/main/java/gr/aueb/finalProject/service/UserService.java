@@ -1,5 +1,6 @@
 package gr.aueb.finalProject.service;
 
+import gr.aueb.finalProject.dto.RegistrationDTO;
 import gr.aueb.finalProject.model.User;
 import java.util.List;
 import java.util.Optional;
@@ -11,5 +12,5 @@ public interface UserService {
     void deleteById(Long id);
     Optional<User> findByUsername(String username);
     Boolean existsByUsername(String username);
-    User registerNewUser(User user);
+    User registerNewUser(RegistrationDTO registrationDTO);
 }
