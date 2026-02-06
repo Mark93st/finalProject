@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Node ###
+node/
+node_modules/
+
+### Custom Config ###
+src/main/resources/application-h2.properties
