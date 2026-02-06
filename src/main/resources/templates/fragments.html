@@ -1,88 +1,55 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
     <meta charset="UTF-8">
-    <style>
-        /* Simple footer fix */
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            flex: 1;
-        }
-
-        footer {
-            margin-top: auto;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="${title}">Student Management</title>
+    <link rel="stylesheet" th:href="@{/css/output.css}" />
+    <script th:src="@{/js/htmx.min.js}"></script>
+    <script>
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            evt.detail.headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        });
+    </script>
 </head>
 <body>
-
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="/">StudentManager</a>
-        <div>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <span class="navbar-text me-3">
-                        Hello, <span sec:authentication="name">User</span>!
-                        <small class="text-warning" sec:authorize="hasRole('ADMIN')">(Admin)</small>
-                        <small class="text-info" sec:authorize="hasRole('STUDENT')">(Student)</small>
-                    </span>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/home">Home</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
-                    <a class="nav-link" href="/students">Students</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
-                    <a class="nav-link" href="/courses">Courses</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
-                    <a class="nav-link" href="/enrollments">Enrollments</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin">Admin Panel</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasRole('STUDENT')">
-                    <a class="nav-link" href="/my-courses">My Courses</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasRole('STUDENT')">
-                    <a class="nav-link" href="/my-grades">My Grades</a>
-                </li>
-
-                <li class="nav-item" sec:authorize="hasRole('STUDENT')">
-                    <a class="nav-link" href="/enroll">Enroll</a>
-                </li>
-
-                <li class="nav-item">
-                    <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                    </form>
-                </li>
-            </ul>
+    <nav th:fragment="navbar" class="bg-brand-blue text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a th:href="@{/}" class="text-xl font-bold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.499 5.216 50.59 50.59 0 00-2.658.813m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                    </svg>
+                    Student Management
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a th:href="@{/courses}" class="hover:text-blue-200 transition-colors">Courses</a>
+                    <a th:href="@{/enrollments}" class="hover:text-blue-200 transition-colors">Enrollments</a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/students}" class="hover:text-blue-200 transition-colors">Students</a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="hover:text-blue-200 transition-colors">Admin Panel</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div sec:authorize="isAuthenticated()" class="flex items-center gap-4">
+                        <span>Welcome, <span sec:authentication="name" class="font-semibold">User</span></span>
+                        <form th:action="@{/logout}" method="post" class="m-0">
+                            <button type="submit" class="bg-white text-brand-blue px-4 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-semibold">Logout</button>
+                        </form>
+                    </div>
+                    <div sec:authorize="!isAuthenticated()" class="flex gap-2">
+                        <a th:href="@{/login}" class="hover:text-gray-200 px-3 py-2">Login</a>
+                        <a th:href="@{/register}" class="bg-white text-brand-blue px-4 py-2 rounded hover:bg-gray-100 transition-colors text-sm font-semibold">Register</a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<footer th:fragment="footer" class="bg-dark text-white text-center py-3 mt-5">
-    <div class="container">
-        <p>&copy; 2025 Student Management System. All rights reserved.</p>
-        <small>Created by Markos Stinis</small>
-    </div>
-</footer>
-
+    <footer th:fragment="footer" class="bg-gray-800 text-white mt-auto py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Student Management System. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

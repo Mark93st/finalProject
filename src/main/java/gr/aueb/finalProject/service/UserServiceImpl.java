@@ -1,10 +1,13 @@
 package gr.aueb.finalProject.service;
 
 import gr.aueb.finalProject.repository.UserRepository;
+import gr.aueb.finalProject.dto.RegistrationDTO;
+import gr.aueb.finalProject.model.Student;
 import gr.aueb.finalProject.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,14 +54,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerNewUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists: " + user.getUsername());
+    @Transactional
+    public User registerNewUser(RegistrationDTO registrationDTO) {
+        if (userRepository.existsByUsername(registrationDTO.getUsername())) {
+            throw new RuntimeException("Username already exists");
         }
 
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
+        if (!registrationDTO.getPassword().equals(registrationDTO.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
 
-        return userRepository.save(user);
+        User newUser = new User();
+        newUser.setUsername(registrationDTO.getUsername());
+        newUser.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
+
+        if (userRepository.count() == 0) {
+            newUser.setRole("ROLE_ADMIN");
+        } else {
+            newUser.setRole("ROLE_STUDENT");
+            Student newStudent = new Student();
+            newStudent.setFirstName(registrationDTO.getFirstName());
+            newStudent.setLastName(registrationDTO.getLastName());
+            newStudent.setEmail(registrationDTO.getEmail());
+
+            newUser.setStudent(newStudent);
+            newStudent.setUser(newUser);
+        }
+
+        return userRepository.save(newUser);
     }
 }

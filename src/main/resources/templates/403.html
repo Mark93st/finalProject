@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Error')}"></head>
+<head th:replace="~{fragments :: head('Access Denied')}"></head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
     <nav th:replace="~{fragments :: navbar}"></nav>
 
     <main class="flex-grow flex items-center justify-center px-4 py-12">
         <div class="text-center">
-            <h1 class="text-9xl font-bold text-gray-200">Oops!</h1>
-            <h2 class="text-4xl font-bold text-gray-800 mt-4">Something went wrong.</h2>
-            <p class="text-gray-600 mt-4 text-lg">We encountered an unexpected error. Please try again later.</p>
+            <h1 class="text-9xl font-bold text-gray-200">403</h1>
+            <h2 class="text-4xl font-bold text-gray-800 mt-4">Access Denied</h2>
+            <p class="text-gray-600 mt-4 text-lg">You do not have permission to view this page.</p>
             
             <div class="mt-8">
                 <a th:href="@{/}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-blue hover:bg-blue-800 transition-colors">

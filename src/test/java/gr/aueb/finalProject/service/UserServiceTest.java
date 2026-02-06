@@ -2,6 +2,7 @@ package gr.aueb.finalProject.service;
 
 import gr.aueb.finalProject.model.User;
 import gr.aueb.finalProject.repository.UserRepository;
+import gr.aueb.finalProject.dto.RegistrationDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -112,28 +113,49 @@ class UserServiceTest {
     @Test
     void testRegisterNewUserSuccess() {
         // Arrange
-        when(userRepository.existsByUsername("testuser")).thenReturn(false);
+        RegistrationDTO dto = new RegistrationDTO("newuser", "password", "First", "Last", "email@test.com", "password");
+        when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userRepository.count()).thenReturn(1L);
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
 
         // Act
-        User registeredUser = userService.registerNewUser(testUser);
+        User registeredUser = userService.registerNewUser(dto);
 
         // Assert
         assertNotNull(registeredUser);
         assertEquals("encodedPassword", registeredUser.getPassword());
-        verify(userRepository, times(1)).existsByUsername("testuser");
-        verify(passwordEncoder, times(1)).encode("password");
+        assertEquals("ROLE_STUDENT", registeredUser.getRole());
+        assertNotNull(registeredUser.getStudent());
+        verify(userRepository, times(1)).existsByUsername("newuser");
         verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void testRegisterFirstUserAsAdmin() {
+        // Arrange
+        RegistrationDTO dto = new RegistrationDTO("admin", "password", "Admin", "User", "admin@test.com", "password");
+        when(userRepository.existsByUsername("admin")).thenReturn(false);
+        when(userRepository.count()).thenReturn(0L);
+        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // Act
+        User registeredUser = userService.registerNewUser(dto);
+
+        // Assert
+        assertEquals("ROLE_ADMIN", registeredUser.getRole());
+        assertNull(registeredUser.getStudent());
     }
 
     @Test
     void testRegisterNewUserUsernameExists() {
         // Arrange
+        RegistrationDTO dto = new RegistrationDTO("testuser", "password", "F", "L", "e@e.com", "password");
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> userService.registerNewUser(testUser));
+        assertThrows(RuntimeException.class, () -> userService.registerNewUser(dto));
         verify(userRepository, times(1)).existsByUsername("testuser");
         verify(userRepository, never()).save(any(User.class));
     }

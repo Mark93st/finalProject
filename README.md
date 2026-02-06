@@ -1,69 +1,97 @@
 # Student Management System
 
-A comprehensive full-stack web application for managing students, courses, and enrollments with authentication and authorization.
+A modern, full-stack web application designed for educational institutions to manage students, courses, and enrollments efficiently. Built with Spring Boot and enhanced with modern frontend technologies like Tailwind CSS and HTMX for a responsive and dynamic user experience.
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **User Authentication & Authorization**
-  - Admin and Student roles
-  - Secure login/logout
-  - Role-based access control
+### 🛡️ Authentication & Security
+- **Secure Access:** Role-based authentication (Admin & Student) using Spring Security.
+- **Registration:** Public registration for new students.
+- **Session Management:** Secure session handling for logged-in users.
 
-- **Student Management**
-  - Create, view, update, delete students
-  - Student profiles with personal information
+### 👨‍💼 Admin Capabilities
+- **Dashboard:** Centralized admin panel for system oversight.
+- **Student Management:** View, search, and manage student profiles.
+- **Course Management:** Create, update, and delete courses.
+- **Enrollment Oversight:** Monitor course enrollments across the system.
 
-- **Course Management** 
-  - Create, view, update, delete courses
-  - Course catalog with descriptions and credits
+### 🎓 Student Features
+- **Course Catalog:** Browse available courses with detailed descriptions and credits.
+- **Enrollment:** Self-service enrollment in open courses.
+- **My Courses:** Personalized view of enrolled courses and grades.
+- **Grade Tracking:** View academic performance and grades.
 
-- **Enrollment System**
-  - Students can enroll in courses
-  - Students can drop courses
-  - Grade assignment and tracking
+## 🛠️ Technology Stack
 
-- **User Interface**
-  - Responsive Bootstrap design
-  - Role-specific dashboards
-  - Intuitive navigation
+### Backend
+- **Java 17**
+- **Spring Boot 3.x** (Web, Security, Data JPA, Validation)
+- **Database:** MySQL (Production) / H2 (Development/Testing)
+- **Build Tool:** Maven
 
-## 🛠️ Technologies Used
+### Frontend
+- **Thymeleaf:** Server-side templating engine.
+- **Tailwind CSS:** Utility-first CSS framework for modern, responsive design.
+- **HTMX:** High-power tools for HTML to enable dynamic interactions without complex JavaScript.
+- **Bootstrap:** (Included for legacy/utility support).
 
-- **Backend**: Spring Boot 3.x, Spring Security, Spring Data JPA
-- **Frontend**: Thymeleaf, Bootstrap 5, Bootstrap Icons
-- **Database**: MySQL with Hibernate ORM
-- **Authentication**: Spring Security with session management
+## 📋 Prerequisites
 
-## 📦 Installation & Setup
+Before you begin, ensure you have the following installed:
+- **Java Development Kit (JDK) 17** or higher
+- **MySQL Server** (8.0 recommended)
 
-1. **Prerequisites**
-   - Java 17 or higher
-   - MySQL Server
-   - Maven
+> **Note:** Node.js and NPM are managed automatically by the Maven build process, so you don't need to install them manually.
 
-2. **Database Setup**
-   ```sql
-   CREATE DATABASE student_management_db;
+## ⚙️ Installation & Setup
 
-3. **Configuration**
-    - spring.datasource.url=jdbc:mysql://localhost:3306/student_management_db
-    - spring.datasource.username=your_username
-    - spring.datasource.password=your_password
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/yourusername/student-management-application.git
+    cd student-management-application
+    ```
 
-4. **Run the application**
-    - mvn spring-boot:run
+2.  **Configure Database**
+    - Create a MySQL database named `student_management_db`.
+    - Open `src/main/resources/application.properties` and update your MySQL credentials:
+      ```properties
+      spring.datasource.url=jdbc:mysql://localhost:3306/student_management_db...
+      spring.datasource.username=YOUR_USERNAME
+      spring.datasource.password=YOUR_PASSWORD
+      ```
 
-5. **Access the application**
-    - Open: http://localhost:8080
-    - First registered user becomes Admin
-    - Subsequent users become Students
+3.  **Build and Run**
+    The application uses a Maven wrapper and a frontend plugin to handle all dependencies (including Tailwind CSS generation).
+    ```bash
+    # On Windows
+    .\mvnw.cmd spring-boot:run
 
-6. **Default roles**
-    - Admin: Full access to all features (students, courses, enrollments)
-    - Student: Can view their courses, grades, and enroll in new courses
+    # On macOS/Linux
+    ./mvnw spring-boot:run
+    ```
 
-7. **Usage**
-    - Registration: Create a new account
-    - Login: Sign in with your credentials
-    - Admin Features: Manage students, courses, and view all enrollments
-    - Student Features: View courses, enroll in courses, check grades
+4.  **Access the Application**
+    - Open your browser and navigate to: [http://localhost:8080](http://localhost:8080)
+
+## 📁 Project Structure
+
+```text
+src/main/
+├── java/gr/aueb/finalProject/
+│   ├── controller/   # Web controllers (Admin, Student, Auth, etc.)
+│   ├── model/        # JPA Entities (Student, Course, Enrollment)
+│   ├── repository/   # Data Access Layer
+│   ├── service/      # Business Logic
+│   └── security/     # Spring Security Configuration
+└── resources/
+    ├── static/       # Generated CSS, JS (HTMX)
+    └── templates/    # Thymeleaf HTML views
+```
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

@@ -1,8 +1,10 @@
 package gr.aueb.finalProject.controller;
 
-import gr.aueb.finalProject.model.User;
-import gr.aueb.finalProject.service.UserService;
+import gr.aueb.finalProject.service.CourseService;
+import gr.aueb.finalProject.service.EnrollmentService;
+import gr.aueb.finalProject.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -10,17 +12,22 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
-    private final UserService userService;
+    private final StudentService studentService;
+    private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
 
     @Autowired
-    public AdminController(UserService userService) {
-        this.userService = userService;
+    public AdminController(StudentService studentService, 
+                           CourseService courseService, 
+                           EnrollmentService enrollmentService) {
+        this.studentService = studentService;
+        this.courseService = courseService;
+        this.enrollmentService = enrollmentService;
     }
 
     @GetMapping
@@ -28,17 +35,15 @@ public class AdminController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
 
-        // Get statistics or data for the admin panel
-        List<User> allUsers = userService.findAll();
-        long totalUsers = allUsers.size();
-        long adminUsers = allUsers.stream().filter(user -> user.getRole().equals("ROLE_ADMIN")).count();
-        long studentUsers = allUsers.stream().filter(user -> user.getRole().equals("ROLE_STUDENT")).count();
+        // Fetch counts for the dashboard statistics
+        long studentCount = studentService.count();
+        long courseCount = courseService.count();
+        long enrollmentCount = enrollmentService.count();
 
         model.addAttribute("currentUser", username);
-        model.addAttribute("totalUsers", totalUsers);
-        model.addAttribute("adminUsers", adminUsers);
-        model.addAttribute("studentUsers", studentUsers);
-        model.addAttribute("allUsers", allUsers);
+        model.addAttribute("studentCount", studentCount);
+        model.addAttribute("courseCount", courseCount);
+        model.addAttribute("enrollmentCount", enrollmentCount);
 
         return "admin-panel";
     }
